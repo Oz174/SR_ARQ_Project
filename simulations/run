@@ -1,0 +1,4 @@
+#!/bin/sh
+cd `dirname $0`
+../src/sr_arq_project -n .:../src $*
+# for shared lib, use: opp_run -l ../src/sr_arq_project -n .:../src $*
