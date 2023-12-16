@@ -25,6 +25,7 @@
 #include <direct.h>
 #include <time.h>
 #include "Message_m.h"
+#include "StatsGenerator.h"
 #include <vector>
 
 #define Delay 0
@@ -41,11 +42,11 @@ class Node : public cSimpleModule
 {
 
   protected:
-    static void openOutputFile();
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
   public:
-    static std::fstream outputFile;
+
+        static std::fstream outputFile;
         static std::vector<std::string> outputBuffer;
         /**
          * @enum
@@ -73,37 +74,51 @@ class Node : public cSimpleModule
 
         } ErrorCodeType_t;
 
+        // this enum for assigning which node is which by coordinator
         typedef enum {
             NodeType_Sender, NodeType_Receiver
         } NodeType_t;
+
+        // this enum was for the sake of the switch case to easy handle the flow of SR (you might not need it)
         typedef enum {
             Data = 0, ACK = 1, NACK = 2, To_Send = 3, timeout = 4, timeout_print = 5
         } MsgType_t;
 
+        //DONE
         void readMessages(std::string &fileName,
                 std::vector<ErrorCodeType_t> &errorArray,
                 std::vector<std::string> &messageArray);
+        //DONE
         void modifyMessage(std::string &payload);
 
-        void printReading(ErrorCodeType_t errorCode);
-        char calculateParity(std::string &payload);
-        void framing(Message *mptr, std::string &payload, int seq,
+        //DONE
+        char calculateChecksum(std::string &payload);
+        void framingByteStuffing(Message *mptr, std::string &payload, int seq,
                 bool modifiedFlag);
+
+
   private:
 
-      // Gets current working directory of the application
-      std::string get_current_dir();
+
+      // Gets current working directory of the application (DONE)
+      std::string getCurrentDirectory();
       // Determines whether the node is sender or receiver
       NodeType_t nodeType = NodeType_Receiver;
       bool errorDetection(Message *msg);
-      void printBeforeTransimission(Message *msg, ErrorCodeType_t input);
-      void send_msg(Message *msg);
-      void control_print(Message *msg, bool lost);
-      void Timeout_print(int seqnum);
+      //DONE
+      void readingPrint(ErrorCodeType_t errorCode);
+      void beforeTransmissionPrint(Message *msg, ErrorCodeType_t input);
+      void controlPrint(Message *msg, bool lost);
+      void timeoutPrint(Message *msg);
+      //DONE
       void selfMessageDelay(Message *msg, double delay);
       void selfMessageDuplicate(Message *msg, double delay);
-      void send_logic(Message *mmsg, int msg_index);
-      void printToFile();
+      //DONE
+      void sendDelayedMsg(Message *msg);
+      void sendLogic(Message *msg, int msg_index);
+      //DONE
+      static void openOutputFile();
+      void writeToFile();
 
 
 };
