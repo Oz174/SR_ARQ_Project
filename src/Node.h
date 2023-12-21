@@ -119,6 +119,10 @@ class Node : public cSimpleModule
       //DONE
       static void openOutputFile();
       void writeToFile();
+      // private data members
+      int is_sender = -1;
+      std::vector<ErrorCodeType_t> errorArray;
+      std::vector<std::string> messageArray;
 
 
 };

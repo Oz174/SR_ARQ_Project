@@ -18,8 +18,8 @@ network Network
             @display("p=444,65;i=device/switch");
         }
     connections:
-        coordinator.gate0 --> Node0.coordinator_gate;
-        coordinator.gate1 --> Node1.coordinator_gate;
+        coordinator.out0 --> Node0.coordinator_gate;
+        coordinator.out1 --> Node1.coordinator_gate;
         Node0.out --> Node1.in;
         Node1.out --> Node0.in;
 }

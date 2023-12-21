@@ -22,6 +22,6 @@ simple Coordinator
 {
     // he only sends messages out to the two nodes
     gates: 
-        output gate0; 
-        output gate1;
+        output out0; 
+        output out1;
 }

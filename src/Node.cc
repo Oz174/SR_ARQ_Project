@@ -36,6 +36,51 @@ void Node::initialize()
 void Node::handleMessage(cMessage *msg)
 {
     // TODO - Generated method body
+    // casting the message to our custom type
+    Message *mmsg=check_and_cast<Message *>(msg);
+    //getting to know the role
+    if (this->is_sender == -1)
+    {
+        //first message
+        if (((static_cast<std::string>(mmsg->getPayload()) == "input0.txt") &&(static_cast<std::string>(this->getName()) == "Node0"))|| ((static_cast<std::string>(mmsg->getPayload()) == "input0.txt") &&(static_cast<std::string>(this->getName()) == "Node0")))
+        {
+           //initialize sender variables
+            this->is_sender = 1;
+            std::string filename= static_cast<std::string>(mmsg->getPayload());
+            //read messages
+            this->readMessages(filename, this->errorArray, this->messageArray);
+
+            for (auto i : this->errorArray )
+            {
+                EV<< i;
+                EV<< "\n";
+            }
+            for (auto i : this->messageArray )
+            {
+                EV<< i;
+                EV<< "\n";
+            }
+        }
+        else
+        {
+            //initialize receiver variables
+            this->is_sender= 0;
+        }
+
+    }
+
+    //main loop
+
+    if (this->is_sender == 1)
+    {
+        // sender
+
+    }
+    else if (this->is_sender == 0)
+    {
+        //receiver
+    }
+
 }
 
 // Printing in console and pushing back in the output buffer for file writing
