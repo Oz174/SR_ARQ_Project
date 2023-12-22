@@ -73,7 +73,13 @@ void Node::handleMessage(cMessage *msg)
     {
         if (mmsg->getType()== 1 || mmsg->getType()== 2)
         {
-            EV<<"message is ACK/NACK \n";
+            if (mmsg->getType()==1)
+            {
+                EV<<"message is ACK\n";
+            }else
+            {
+                EV<<"message is NACK\n";
+            }
             EV<<"Sequence Number: "<<mmsg->getAck_no() << "\n";
             return;
         }
@@ -88,45 +94,57 @@ void Node::handleMessage(cMessage *msg)
     }
     else if (this->is_sender == 0)
     {
+
+
         //receiver
         if (mmsg->getHeader() % this->receiver_window_size == this->expected_seqence_number)
         {
 
             // add the message in data received
             this->NACK_Sent[mmsg->getHeader() % this->receiver_window_size]=1;
-            this->Data_received[mmsg->getHeader() % this->receiver_window_size]=1;
-
-            //ACK message
-            Message * ack_message= new Message;
-            //expect the next frame
-            for (int i =0 ; i< this->receiver_window_size; i++)
+            if (!this->errorDetection(mmsg))
             {
-                if (Data_received[i]==0)
+                this->Data_received[mmsg->getHeader() % this->receiver_window_size]=1;
+
+
+                //ACK message
+                Message * ack_message= new Message;
+                //expect the next frame
+                for (int i =0 ; i< this->receiver_window_size; i++)
                 {
-                    //see next expected sequence number
-                    this->expected_seqence_number=i;
-                    break;
+                    if (Data_received[i]==0)
+                    {
+                        //see next expected sequence number
+                        this->expected_seqence_number=i;
+                        break;
+                    }
+
+                    // all messages are ok
+                    this->expected_seqence_number =0;
+                    this->receiver_window_index++;
                 }
 
-                // all messages are ok
-                this->expected_seqence_number =0;
-                this->receiver_window_index++;
             }
 
-
-
-            // send ACK
-            this->send_ACK_or_NACK(ack_message, true, mmsg->getHeader());
+            // send ACK/NACK
+            this->send_ACK_or_NACK(new Message, !this->errorDetection(mmsg), mmsg->getHeader());
 
 
 
         }
         else
         {
-            // ACK message for currently received
-            this->send_ACK_or_NACK(new Message, true, mmsg->getHeader());
+            // ACK/NACK message for currently received
             this->NACK_Sent[mmsg->getHeader() % this->receiver_window_size]=1;
-            this->Data_received[mmsg->getHeader() % this->receiver_window_size]=1;
+            if (!this->errorDetection(mmsg))
+            {
+                this->Data_received[mmsg->getHeader() % this->receiver_window_size]=1;
+            }
+            else
+            {
+                this->send_ACK_or_NACK(new Message, false, mmsg->getHeader());
+
+            }
 
 
             //NACK message
