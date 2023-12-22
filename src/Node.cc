@@ -56,7 +56,13 @@ void Node::handleMessage(cMessage *msg)
         else
         {
             //initialize receiver variables
-            this->is_sender= 0;
+            this->is_sender =0;
+            for (int i =0; i< this->receiver_window_size ; i++)
+            {
+                this->NACK_Sent.push_back(0);
+                this->Data_received.push_back(0);
+            }
+
         }
 
     }
@@ -65,10 +71,15 @@ void Node::handleMessage(cMessage *msg)
 
     if (this->is_sender == 1)
     {
+        if (mmsg->getType()== 1 || mmsg->getType()== 2)
+        {
+            EV<<"message is ACK/NACK" <<
+        }
         // sender
         if (!msg->isSelfMessage())
         {
-        processFrames( this->current_end_frame-this->sender_window_size +1,this->current_end_frame );
+
+            processFrames( this->current_end_frame-this->sender_window_size +1,this->current_end_frame );
 
         }
 
@@ -76,7 +87,61 @@ void Node::handleMessage(cMessage *msg)
     else if (this->is_sender == 0)
     {
         //receiver
-        EV << "received\n";
+        if (mmsg->getHeader() % this->receiver_window_size == this->expected_seqence_number)
+        {
+
+            // add the message in data received
+            this->NACK_Sent[mmsg->getHeader() % this->receiver_window_size]=1;
+            this->Data_received[mmsg->getHeader() % this->receiver_window_size]=1;
+
+            //ACK message
+            Message * ack_message= new Message;
+            //expect the next frame
+            for (int i =0 ; i< this->receiver_window_size; i++)
+            {
+                if (Data_received[i]==0)
+                {
+                    //see next expected sequence number
+                    this->expected_seqence_number=i;
+                    break;
+                }
+
+                // all messages are ok
+                this->expected_seqence_number =0;
+                this->receiver_window_index++;
+            }
+
+
+
+            // send ACK
+            this->send_ACK_or_NACK(ack_message, true, mmsg->getHeader());
+
+
+
+        }
+        else
+        {
+            // ACK message for currently received
+            this->send_ACK_or_NACK(new Message, true, mmsg->getHeader());
+            this->NACK_Sent[mmsg->getHeader() % this->receiver_window_size]=1;
+            this->Data_received[mmsg->getHeader() % this->receiver_window_size]=1;
+
+
+            //NACK message
+            int current_index = mmsg->getHeader() % this->receiver_window_size;
+
+            for (int i = 0 ; i < current_index;i++)
+            {
+                Message * ack_message= new Message;
+                if (NACK_Sent[i]==0)
+                {
+                    // send NACK
+                    this->send_ACK_or_NACK(ack_message, false, i + (this->receiver_window_size* this->receiver_window_index));
+                    // add the message in NACK Sent
+                    this->NACK_Sent[i]=1;
+                }
+            }
+        }
     }
 
 }
@@ -364,6 +429,7 @@ void Node::sendLogic(Message *msg, int msg_index) {
     double delay_time =
             (tmp_bits[Delay] == 1) ? par("ErrorDelay").doubleValue() : 0;
 
+    delay_time+= par ("ProcessingTime").doubleValue();
     if (tmp_bits[Dup] == 1) {
 
         selfMessageDuplicate(msg, delay_time);
@@ -385,6 +451,24 @@ void Node::processFrames(int start_index,int end_index)
     }
 }
 
+// response from receiver
 
+void Node::send_ACK_or_NACK (Message *msg,bool is_ack,int seq_number)
+{
+    msg->setAck_no(seq_number);
+    if (is_ack)
+    {
+        //set as ACK
+        msg->setType(1);
+    }
+    else
+    {
+        //set as NACK
+        msg->setType(2);
+    }
+    int delay= par ("ProcessingTime").doubleValue();
+    sendDelayed(msg, simTime() + delay, "out");
+
+}
 
 

@@ -121,13 +121,23 @@ class Node : public cSimpleModule
       void writeToFile();
       //processing frames
       void processFrames(int start_index,int end_index);
+      //response from the receiver
+      void send_ACK_or_NACK (Message *msg,bool is_ack, int seq_number);
       // private data members
       int is_sender = -1;
       std::vector<ErrorCodeType_t> errorArray;
       std::vector<std::string> messageArray;
       //Sender window
-      int sender_window_size=3;
-      int current_end_frame=2;
+      int sender_window_size= 3;
+      int current_end_frame=3-1;
+      int receiver_window_size=3;
+      int receiver_end_frame=3-1;
+      int expected_seqence_number=0;
+      int receiver_window_index=0;
+      std::vector<int> NACK_Sent;
+      std::vector<int> Data_received;
+
+
 
 
 };
