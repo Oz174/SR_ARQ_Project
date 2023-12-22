@@ -119,10 +119,15 @@ class Node : public cSimpleModule
       //DONE
       static void openOutputFile();
       void writeToFile();
+      //processing frames
+      void processFrames(int start_index,int end_index);
       // private data members
       int is_sender = -1;
       std::vector<ErrorCodeType_t> errorArray;
       std::vector<std::string> messageArray;
+      //Sender window
+      int sender_window_size=3;
+      int current_end_frame=2;
 
 
 };

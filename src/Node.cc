@@ -38,6 +38,7 @@ void Node::handleMessage(cMessage *msg)
     // TODO - Generated method body
     // casting the message to our custom type
     Message *mmsg=check_and_cast<Message *>(msg);
+
     //getting to know the role
     if (this->is_sender == -1)
     {
@@ -50,16 +51,7 @@ void Node::handleMessage(cMessage *msg)
             //read messages
             this->readMessages(filename, this->errorArray, this->messageArray);
 
-            for (auto i : this->errorArray )
-            {
-                EV<< i;
-                EV<< "\n";
-            }
-            for (auto i : this->messageArray )
-            {
-                EV<< i;
-                EV<< "\n";
-            }
+
         }
         else
         {
@@ -74,11 +66,17 @@ void Node::handleMessage(cMessage *msg)
     if (this->is_sender == 1)
     {
         // sender
+        if (!msg->isSelfMessage())
+        {
+        processFrames( this->current_end_frame-this->sender_window_size +1,this->current_end_frame );
+
+        }
 
     }
     else if (this->is_sender == 0)
     {
         //receiver
+        EV << "received\n";
     }
 
 }
@@ -243,7 +241,15 @@ void Node::writeToFile() {
 void Node::selfMessageDelay(Message *msg, double delay) {
     cancelEvent(msg);
     beforeTransmissionPrint(msg, errorArray[msg->getHeader()]);
-    scheduleAt(simTime() + delay, msg);
+//    scheduleAt(simTime() + delay, msg);
+    // sending to other node
+    std::bitset<4> tmp_bits(errorArray[msg->getHeader()]); //0b0100 --> LSB is 0
+    // check if lost
+    if (tmp_bits[Loss]!= 1)
+    {
+        sendDelayed(msg, simTime() + delay, "out");
+
+    }
 }
 void Node::selfMessageDuplicate(Message *msg, double delay) {
     double duplicationDelay = par("DuplicationDelay").doubleValue();
@@ -366,6 +372,19 @@ void Node::sendLogic(Message *msg, int msg_index) {
     }
 
 }
+
+
+// processing frames in sender
+void Node::processFrames(int start_index,int end_index)
+{
+    for (int i = start_index ; i <= end_index ; i++)
+    {
+        EV << "Message "<< i<<" : " << this->messageArray[i] << "\n";
+        Message* msg = new Message;
+        this->sendLogic(msg, i);
+    }
+}
+
 
 
 
