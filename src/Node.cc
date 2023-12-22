@@ -73,7 +73,9 @@ void Node::handleMessage(cMessage *msg)
     {
         if (mmsg->getType()== 1 || mmsg->getType()== 2)
         {
-            EV<<"message is ACK/NACK" <<
+            EV<<"message is ACK/NACK \n";
+            EV<<"Sequence Number: "<<mmsg->getAck_no() << "\n";
+            return;
         }
         // sender
         if (!msg->isSelfMessage())
@@ -312,7 +314,7 @@ void Node::selfMessageDelay(Message *msg, double delay) {
     // check if lost
     if (tmp_bits[Loss]!= 1)
     {
-        sendDelayed(msg, simTime() + delay, "out");
+        sendDelayed(msg, delay, "out");
 
     }
 }
@@ -429,7 +431,7 @@ void Node::sendLogic(Message *msg, int msg_index) {
     double delay_time =
             (tmp_bits[Delay] == 1) ? par("ErrorDelay").doubleValue() : 0;
 
-    delay_time+= par ("ProcessingTime").doubleValue();
+    delay_time+= par ("ProcessingTime").doubleValue() + par ("TransmissionDelay").doubleValue();
     if (tmp_bits[Dup] == 1) {
 
         selfMessageDuplicate(msg, delay_time);
@@ -466,8 +468,9 @@ void Node::send_ACK_or_NACK (Message *msg,bool is_ack,int seq_number)
         //set as NACK
         msg->setType(2);
     }
-    int delay= par ("ProcessingTime").doubleValue();
-    sendDelayed(msg, simTime() + delay, "out");
+    double delay=par ("ProcessingTime").doubleValue() + par ("TransmissionDelay").doubleValue() ;
+
+    sendDelayed(msg, delay, "out");
 
 }
 
