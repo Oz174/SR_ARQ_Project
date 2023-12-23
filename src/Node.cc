@@ -50,7 +50,12 @@ void Node::handleMessage(cMessage *msg)
             std::string filename= static_cast<std::string>(mmsg->getPayload());
             //read messages
             this->readMessages(filename, this->errorArray, this->messageArray);
-
+            this->sender_max_sequence_number = 2* this->sender_window_size -1;
+            for (int i =0; i< this->sender_max_sequence_number ; i++)
+            {
+                this->sent_sequences.push_back(0);
+                this->ACK_sequences.push_back(0);
+            }
 
         }
         else
@@ -78,6 +83,14 @@ void Node::handleMessage(cMessage *msg)
             if (mmsg->getType()==1)
             {
                 EV<<"Sequence Number: "<<mmsg->getAck_no() <<" message is ACK\n";
+
+                int ack_no = mmsg->getAck_no();
+                //add the info in the ACK_sequances
+                this->ACK_sequences[ack_no-1]=1;
+                //add info in sent_sequences
+                this->sent_sequences[ack_no-1]=1;
+
+
             }else
             {
                 EV<<"Sequence Number: "<<mmsg->getAck_no() <<" message is NACK\n";
@@ -497,11 +510,32 @@ void Node::sendLogic(Message *msg, int msg_index) {
 // processing frames in sender
 void Node::processFrames(int start_index,int end_index)
 {
-    for (int i = start_index ; i <= end_index ; i++)
+    if (start_index > end_index)
     {
-        EV << "Message "<< i<<" : " << this->messageArray[i] << "\n";
-        Message* msg = new Message;
-        this->sendLogic(msg, i);
+        for (int i = start_index; i <= this->sender_max_sequence_number; i++)
+        {
+            Message* msg = new Message;
+            this->sendLogic(msg, i);
+        }
+
+        for (int i = 0; i <= end_index; i++)
+        {
+            Message* msg = new Message;
+            this->sendLogic(msg, i);
+        }
+
+
+    }
+    else
+    {
+        for (int i = start_index ; i <= end_index ; i++)
+        {
+            this->sent_sequences[i]=1;
+            EV << "Message "<< i<<" : " << this->messageArray[i] << "\n";
+            Message* msg = new Message;
+            this->sendLogic(msg, i);
+        }
+
     }
 }
 

@@ -140,6 +140,10 @@ class Node : public cSimpleModule
       //Sender
       int sender_window_size= 3;
       int current_end_frame=sender_window_size-1;
+      int sender_max_sequence_number;
+      std::vector<int> sent_sequences;
+      std::vector<int> ACK_sequences;
+
 
 
 
