@@ -1,6 +1,6 @@
 0000 A flower, sometimes
-1010 known as a bloom or blossom in flowering plants
-0001 is the reproductive$ structure found also called/ angiosperms$).
+0001 known as a bloom or blossom in flowering plants
+1000 is the reproductive$ structure found also called/ angiosperms$).
 0000 (plants of the division Magnoliophyta, is to facilitate reproduction,
 0011 The biological function of $/a flower
 0000 usually by providing a mechanism for Flowers may facilitate outcrossing$

@@ -72,6 +72,7 @@ void Node::handleMessage(cMessage *msg)
 
     if (this->is_sender == 1)
     {
+        //message is ACK or NACK
         if (mmsg->getType()== 1 || mmsg->getType()== 2)
         {
             if (mmsg->getType()==1)
@@ -115,17 +116,23 @@ void Node::handleMessage(cMessage *msg)
                 int check_sequence_number = this->expected_seqence_number;
                 for (int i =this->expected_seqence_number ; i< this->receiver_window_size; i++)
                 {
+
                     //we reached the expected sequence number
-                    if(Data_received[check_sequence_number]==0)
+                    if(Data_received[check_sequence_number]==0 )
                     {
                         this->expected_seqence_number = check_sequence_number;
+                        this->send_ACK_or_NACK(new Message, true, check_sequence_number);
                         break;
+                    }
+                    if(Data_received[check_sequence_number]==1 && i==receiver_window_size-1)
+                    {
+                        check_sequence_number +1 > this->receiver_max_sequence_number ? check_sequence_number =0 : check_sequence_number++;
+                        this->send_ACK_or_NACK(new Message, true, check_sequence_number);
                     }
 
 
                     //make index circular
                     check_sequence_number +1 > this->receiver_max_sequence_number ? check_sequence_number =0 : check_sequence_number++;
-                    this->send_ACK_or_NACK(new Message, true, check_sequence_number);
 
                 }
 

@@ -127,16 +127,21 @@ class Node : public cSimpleModule
       int is_sender = -1;
       std::vector<ErrorCodeType_t> errorArray;
       std::vector<std::string> messageArray;
-      //Sender window
-      int sender_window_size= 3;
-      int current_end_frame=3-1;
+
+      //receiver
       int receiver_window_size=3;
-      int receiver_end_frame=3-1;
-      int expected_seqence_number=0;
+      int receiver_end_frame=receiver_window_size-1;
       int receiver_window_index=0;
       int receiver_max_sequence_number;
+      int expected_seqence_number=0;
       std::vector<int> NACK_Sent;
       std::vector<int> Data_received;
+
+      //Sender
+      int sender_window_size= 3;
+      int current_end_frame=sender_window_size-1;
+
+
 
 
 
