@@ -82,18 +82,45 @@ void Node::handleMessage(cMessage *msg)
         {
             if (mmsg->getType()==1)
             {
-                EV<<"Sequence Number: "<<mmsg->getAck_no() <<" message is ACK\n";
 
                 int ack_no = mmsg->getAck_no();
-                //add the info in the ACK_sequances
-                this->ACK_sequences[ack_no-1]=1;
-                //add info in sent_sequences
-                this->sent_sequences[ack_no-1]=1;
+                int ack_index_number;
+                //find the index of this
+                for (int i = (ack_no-1) ; i< ACK_sequences.size(); i+=(this->sender_max_sequence_number+1))
+                {
+                    if (ACK_sequences[i]==0)
+                    {
+                        ack_index_number = i+1;
+                        for (int j =0 ; j <= i ;j++)
+                        {
+                            //add the info in the ACK_sequances
+                            this->ACK_sequences[j]=1;
+                            //add info in sent_sequences
+                            this->sent_sequences[j]=1;
+
+                        }
+                        break;
+                    }
+                }
+
+                // advance to the next window
+                int index_to_advance_to= ack_index_number;
+                int last_index = index_to_advance_to + this->sender_window_size -1;
+
+
+                EV<<"i will advance to: "<<mmsg->getAck_no() <<" message is ACK\n";
+
+                EV<< "first index: " << index_to_advance_to << " last index " << last_index<<"\n";
+
+
+                this->processFrames(index_to_advance_to, last_index);
 
 
             }else
             {
                 EV<<"Sequence Number: "<<mmsg->getAck_no() <<" message is NACK\n";
+
+
 
             }
 
@@ -111,6 +138,7 @@ void Node::handleMessage(cMessage *msg)
     else if (this->is_sender == 0)
     {
 
+        EV << "I received sequence number : "<< mmsg->getHeader() << "\n";
 
         //receiver
         if (mmsg->getHeader() == this->expected_seqence_number)
@@ -376,6 +404,9 @@ void Node::selfMessageDelay(Message *msg, double delay) {
 //    scheduleAt(simTime() + delay, msg);
     // sending to other node
     std::bitset<4> tmp_bits(errorArray[msg->getHeader()]); //0b0100 --> LSB is 0
+    //change header to sequence number
+    //FIXME: modulus problem
+    msg->setHeader(msg->getHeader() % (this-> sender_max_sequence_number+1));
     // check if lost
     if (tmp_bits[Loss]!= 1)
     {
@@ -510,30 +541,38 @@ void Node::sendLogic(Message *msg, int msg_index) {
 // processing frames in sender
 void Node::processFrames(int start_index,int end_index)
 {
-    if (start_index > end_index)
-    {
-        for (int i = start_index; i <= this->sender_max_sequence_number; i++)
-        {
-            Message* msg = new Message;
-            this->sendLogic(msg, i);
-        }
-
-        for (int i = 0; i <= end_index; i++)
-        {
-            Message* msg = new Message;
-            this->sendLogic(msg, i);
-        }
-
-
-    }
-    else
+//    if (start_index > end_index)
+//    {
+//        for (int i = start_index; i <= this->sender_max_sequence_number; i++)
+//        {
+//            Message* msg = new Message;
+//            this->sendLogic(msg, i);
+//        }
+//
+//        for (int i = 0; i <= end_index; i++)
+//        {
+//            Message* msg = new Message;
+//            this->sendLogic(msg, i);
+//        }
+//
+//
+//    }
+//    else
     {
         for (int i = start_index ; i <= end_index ; i++)
         {
-            this->sent_sequences[i]=1;
-            EV << "Message "<< i<<" : " << this->messageArray[i] << "\n";
-            Message* msg = new Message;
-            this->sendLogic(msg, i);
+            if (this->sent_sequences[i]==0)
+            {
+
+                this->sent_sequences[i]=1;
+                Message* msg = new Message;
+                if (!messageArray[i].empty())
+                {
+                    EV << "Message "<< i<<" : " << this->messageArray[i] << "\n";
+                    this->sendLogic(msg, i);
+
+                }
+            }
         }
 
     }
