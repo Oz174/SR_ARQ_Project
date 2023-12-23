@@ -134,6 +134,7 @@ class Node : public cSimpleModule
       int receiver_end_frame=3-1;
       int expected_seqence_number=0;
       int receiver_window_index=0;
+      int receiver_max_sequence_number;
       std::vector<int> NACK_Sent;
       std::vector<int> Data_received;
 
