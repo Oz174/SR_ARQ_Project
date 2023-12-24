@@ -123,7 +123,14 @@ void Node::handleMessage(cMessage *msg)
 
                 EV<< "first index: " << index_to_advance_to << " last index " << last_index<<"\n";
 
+                if(index_to_advance_to >=  this->messageArray.size() ){
+                    //if index to advance to finished messages to send end program
 
+                    return;
+                }
+                if (last_index >= this->messageArray.size()){
+                    last_index = this->messageArray.size() - 1;
+                }
                 this->processFrames(index_to_advance_to, last_index);
 
 
