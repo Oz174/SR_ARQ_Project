@@ -25,7 +25,7 @@ simple Node
         double DuplicationDelay = default(0.1);
         double TransmissionDelay = default(1.0);
         double ErrorDelay = default(4.0);
-        double WindowSize = default(3);
+        int WindowSize = default(3);
         double TimeoutInterval = default(10);
     // Node either receives from the other node , or from the coordinater 
     gates:

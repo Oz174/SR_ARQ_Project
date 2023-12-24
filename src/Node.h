@@ -74,11 +74,6 @@ class Node : public cSimpleModule
 
         } ErrorCodeType_t;
 
-        // this enum for assigning which node is which by coordinator
-        typedef enum {
-            NodeType_Sender, NodeType_Receiver
-        } NodeType_t;
-
         // this enum was for the sake of the switch case to easy handle the flow of SR (you might not need it)
         typedef enum {
             Data = 0, ACK = 1, NACK = 2, To_Send = 3, timeout = 4, timeout_print = 5
@@ -103,7 +98,7 @@ class Node : public cSimpleModule
       // Gets current working directory of the application (DONE)
       std::string getCurrentDirectory();
       // Determines whether the node is sender or receiver
-      NodeType_t nodeType = NodeType_Receiver;
+
       bool errorDetection(Message *msg);
       //DONE
       void readingPrint(ErrorCodeType_t errorCode);
@@ -129,17 +124,17 @@ class Node : public cSimpleModule
       std::vector<std::string> messageArray;
 
       //receiver
-      int receiver_window_size=3;
-      int receiver_end_frame=receiver_window_size-1;
-      int receiver_window_index=0;
+      // int receiver_window_size = par("WindowSize").intValue();
+      // int receiver_end_frame=receiver_window_size-1;
+      // int receiver_window_index=0;
       int receiver_max_sequence_number;
       int expected_seqence_number=0;
       std::vector<int> NACK_Sent;
       std::vector<int> Data_received;
 
       //Sender
-      int sender_window_size= 3;
-      int current_end_frame=sender_window_size-1;
+      // int sender_window_size= par("WindowSize").intValue();
+      // int current_end_frame=sender_window_size-1;
       int sender_max_sequence_number;
       std::vector<int> sent_sequences;
       std::vector<int> ACK_sequences;

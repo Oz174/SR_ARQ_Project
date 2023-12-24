@@ -28,13 +28,19 @@ static std::vector<std::string> messageArray;
 // static int size_of_Array;
 // static int frame_to_print = 1;
 
+
+
+
 void Node::initialize()
 {
     // TODO - Generated method body
+
 }
 
 void Node::handleMessage(cMessage *msg)
 {
+    int receiver_window_size = par("WindowSize").intValue();
+    int sender_window_size = par("WindowSize").intValue();
     // TODO - Generated method body
     // casting the message to our custom type
     Message *mmsg=check_and_cast<Message *>(msg);
@@ -50,7 +56,7 @@ void Node::handleMessage(cMessage *msg)
             std::string filename= static_cast<std::string>(mmsg->getPayload());
             //read messages
             this->readMessages(filename, this->errorArray, this->messageArray);
-            this->sender_max_sequence_number = 2* this->sender_window_size -1;
+            this->sender_max_sequence_number = 2* sender_window_size -1;
             for (int i =0; i< this->sender_max_sequence_number ; i++)
             {
                 this->sent_sequences.push_back(0);
@@ -62,7 +68,7 @@ void Node::handleMessage(cMessage *msg)
         {
             //initialize receiver variables
             this->is_sender =0;
-            this->receiver_max_sequence_number = 2* this->receiver_window_size -1;
+            this->receiver_max_sequence_number = 2* receiver_window_size -1;
             for (int i =0; i< this->receiver_max_sequence_number ; i++)
             {
                 this->NACK_Sent.push_back(0);
@@ -84,7 +90,12 @@ void Node::handleMessage(cMessage *msg)
             {
 
                 int ack_no = mmsg->getAck_no();
-                int ack_index_number;
+
+                ack_no = (ack_no==0)? 6 : ack_no;
+
+                int ack_index_number = -1;
+
+
                 //find the index of this
                 for (int i = (ack_no-1) ; i< ACK_sequences.size(); i+=(this->sender_max_sequence_number+1))
                 {
@@ -105,7 +116,7 @@ void Node::handleMessage(cMessage *msg)
 
                 // advance to the next window
                 int index_to_advance_to= ack_index_number;
-                int last_index = index_to_advance_to + this->sender_window_size -1;
+                int last_index = index_to_advance_to + sender_window_size -1;
 
 
                 EV<<"i will advance to: "<<mmsg->getAck_no() <<" message is ACK\n";
@@ -129,8 +140,8 @@ void Node::handleMessage(cMessage *msg)
         // sender
         if (!msg->isSelfMessage())
         {
-
-            processFrames( this->current_end_frame-this->sender_window_size +1,this->current_end_frame );
+            processFrames(0,sender_window_size-1);
+            // processFrames( this->current_end_frame-sender_window_size +1,this->current_end_frame );
 
         }
 
@@ -152,10 +163,10 @@ void Node::handleMessage(cMessage *msg)
 
 
                 //ACK message
-                Message * ack_message= new Message;
+                // Message * ack_message= new Message;
                 // send ACKS for correct messages in order
                 int check_sequence_number = this->expected_seqence_number;
-                for (int i =this->expected_seqence_number ; i< this->receiver_window_size; i++)
+                for (int i =this->expected_seqence_number ; i< receiver_window_size; i++)
                 {
 
                     //we reached the expected sequence number
@@ -181,7 +192,7 @@ void Node::handleMessage(cMessage *msg)
                 //reset the already received frames
                 int reset_index= this->expected_seqence_number;
 
-                for (int i =0 ; i< this->receiver_window_size; i++)
+                for (int i =0 ; i< receiver_window_size; i++)
                 {
                     this->NACK_Sent[reset_index]=0;
                     this->Data_received[reset_index]=0;
