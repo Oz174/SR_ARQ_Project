@@ -110,12 +110,12 @@ class Node : public cSimpleModule
       void selfMessageDuplicate(Message *msg, double delay);
       //DONE
       void sendDelayedMsg(Message *msg);
-      void sendLogic(Message *msg, int msg_index);
+      void sendLogic(Message *msg, int msg_index, bool retransmitted);
       //DONE
       static void openOutputFile();
       void writeToFile();
       //processing frames
-      void processFrames(int start_index,int end_index);
+      void processFrames(int start_index,int end_index,bool retransmitted);
       //response from the receiver
       void send_ACK_or_NACK (Message *msg,bool is_ack, int seq_number);
       // private data members
