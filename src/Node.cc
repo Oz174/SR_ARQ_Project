@@ -57,7 +57,7 @@ void Node::handleMessage(cMessage *msg)
             //read messages
             this->readMessages(filename, this->errorArray, this->messageArray);
             this->sender_max_sequence_number = 2* sender_window_size -1;
-            for (int i =0; i< this->sender_max_sequence_number ; i++)
+            for (int i =0; i< this->sender_max_sequence_number+1 ; i++)
             {
                 this->sent_sequences.push_back(0);
                 this->ACK_sequences.push_back(0);
@@ -69,7 +69,7 @@ void Node::handleMessage(cMessage *msg)
             //initialize receiver variables
             this->is_sender =0;
             this->receiver_max_sequence_number = 2* receiver_window_size -1;
-            for (int i =0; i< this->receiver_max_sequence_number ; i++)
+            for (int i =0; i< this->receiver_max_sequence_number+1 ; i++)
             {
                 this->NACK_Sent.push_back(0);
                 this->Data_received.push_back(0);
@@ -173,7 +173,7 @@ void Node::handleMessage(cMessage *msg)
                 // Message * ack_message= new Message;
                 // send ACKS for correct messages in order
                 int check_sequence_number = this->expected_seqence_number;
-                for (int i =this->expected_seqence_number ; i< receiver_window_size; i++)
+                for (int i =this->expected_seqence_number ; i < this->receiver_max_sequence_number+1 ; i++)
                 {
 
                     //we reached the expected sequence number
@@ -183,10 +183,12 @@ void Node::handleMessage(cMessage *msg)
                         this->send_ACK_or_NACK(new Message, true, check_sequence_number);
                         break;
                     }
-                    if(Data_received[check_sequence_number]==1 && i==receiver_window_size-1)
+                    if(Data_received[check_sequence_number]==1 && (i==receiver_window_size-1 || i == this->receiver_max_sequence_number))
                     {
                         check_sequence_number +1 > this->receiver_max_sequence_number ? check_sequence_number =0 : check_sequence_number++;
+                        this->expected_seqence_number = check_sequence_number;
                         this->send_ACK_or_NACK(new Message, true, check_sequence_number);
+                        break;
                     }
 
 
