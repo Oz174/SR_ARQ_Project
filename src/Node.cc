@@ -171,7 +171,7 @@ void Node::handleMessage(cMessage *msg)
                 //  Message * ack_message= new Message;
                 //  send ACKS for correct messages in order
                 int check_sequence_number = this->expected_seqence_number;
-                for (int i = this->expected_seqence_number; i < this->receiver_max_sequence_number + 1; i++)
+                for (int i = this->expected_seqence_number; i < this->receiver_max_sequence_number + receiver_window_size + 1; i++)
                 {
 
                     // we reached the expected sequence number
@@ -185,9 +185,9 @@ void Node::handleMessage(cMessage *msg)
                     if (Data_received[check_sequence_number] == 1 && (i == this->receiver_max_sequence_number))
                     {
                         check_sequence_number + 1 > this->receiver_max_sequence_number ? check_sequence_number = 0 : check_sequence_number++;
-                        this->expected_seqence_number = check_sequence_number;
-                        this->send_ACK_or_NACK(new Message, true, check_sequence_number);
-                        break;
+                        //this->expected_seqence_number = check_sequence_number;
+                        //this->send_ACK_or_NACK(new Message, true, check_sequence_number);
+                        //break;
                     }
 
                     // make index circular
