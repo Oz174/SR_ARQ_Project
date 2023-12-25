@@ -40,7 +40,6 @@ void Node::handleMessage(cMessage *msg)
     // TODO - Generated method body
     // casting the message to our custom type
     Message *mmsg = check_and_cast<Message *>(msg);
-
     // getting to know the role
     if (this->is_sender == -1)
     {
@@ -182,7 +181,8 @@ void Node::handleMessage(cMessage *msg)
                         this->send_ACK_or_NACK(new Message, true, check_sequence_number);
                         break;
                     }
-                    if (Data_received[check_sequence_number] == 1 && (i == receiver_window_size - 1 || i == this->receiver_max_sequence_number))
+                    //if (Data_received[check_sequence_number] == 1 && (i == receiver_window_size - 1 || i == this->receiver_max_sequence_number))
+                    if (Data_received[check_sequence_number] == 1 && (i == this->receiver_max_sequence_number))
                     {
                         check_sequence_number + 1 > this->receiver_max_sequence_number ? check_sequence_number = 0 : check_sequence_number++;
                         this->expected_seqence_number = check_sequence_number;
@@ -218,7 +218,8 @@ void Node::handleMessage(cMessage *msg)
                 }
             }
         }
-        else
+        else if (!(mmsg->getHeader() > ((this->expected_seqence_number + receiver_window_size- 1 ) % (this->sender_max_sequence_number + 1))))
+        // this condition handles if sender retransmitted an already acknowledged frame
         {
             // ACK/NACK message for currently received
 
@@ -404,7 +405,7 @@ void Node::writeToFile()
 // horror part starts when self starts replying (AKA : voices inside my head)
 // Ok , getting real now , this is to avoid using noisy channel (any other than ideal channel) by sending to oneself
 // So , if you wanna delay , delay by calling these two messages with delay time
-void Node::selfMessageDelay(Message *msg, double delay)
+void Node::selfMessageDelay(Message *msg, double delay,bool retransmitted)
 {
     cancelEvent(msg);
     beforeTransmissionPrint(msg, errorArray[msg->getHeader()]);
@@ -415,7 +416,7 @@ void Node::selfMessageDelay(Message *msg, double delay)
     // FIXME: modulus problem
     msg->setHeader(msg->getHeader() % (this->sender_max_sequence_number + 1));
     // check if lost
-    if (tmp_bits[Loss] != 1)
+    if (tmp_bits[Loss] != 1 || retransmitted)
     {
         sendDelayed(msg, delay, "out");
     }
@@ -427,8 +428,9 @@ void Node::selfMessageDuplicate(Message *msg, double delay)
     Message *duplicatedMessage = new Message(*msg);
     msg->setType(1);
     duplicatedMessage->setType(2);
-    selfMessageDelay(msg, delay);
-    selfMessageDelay(duplicatedMessage, delay + duplicationDelay);
+
+    selfMessageDelay(msg, delay,0);
+    selfMessageDelay(duplicatedMessage, delay + duplicationDelay,0);
 }
 
 // It's time for the data link to do its job
@@ -552,14 +554,14 @@ void Node::sendLogic(Message *msg, int msg_index , bool retransmitted)
         (tmp_bits[Delay] == 1) ? par("ErrorDelay").doubleValue() : 0;
 
     delay_time += par("ProcessingTime").doubleValue() + par("TransmissionDelay").doubleValue();
-    if (tmp_bits[Dup] == 1)
+    if (tmp_bits[Dup] == 1 && !retransmitted)
     {
 
         selfMessageDuplicate(msg, delay_time);
     }
     else
     {
-        selfMessageDelay(msg, delay_time);
+        selfMessageDelay(msg, delay_time, retransmitted);
     }
 }
 

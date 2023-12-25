@@ -106,7 +106,7 @@ class Node : public cSimpleModule
       void controlPrint(Message *msg, bool lost);
       void timeoutPrint(Message *msg);
       //DONE
-      void selfMessageDelay(Message *msg, double delay);
+      void selfMessageDelay(Message *msg, double delay,bool retransmitted);
       void selfMessageDuplicate(Message *msg, double delay);
       //DONE
       void sendDelayedMsg(Message *msg);
