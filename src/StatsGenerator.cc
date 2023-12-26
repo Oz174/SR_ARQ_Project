@@ -18,18 +18,52 @@
 
 
 StatsGenerator::StatsGenerator() {
-    // TODO Auto-generated constructor stub
-    // statistics part
-      lost_messages = 0;
-      modified_messages = 0;
-      erroneous_messages = 0;
-      total_messages = 0;
-      total_lengths = 0;
-      time_taken_for_send = 0.0; // (TD+ ED) for each message / final sim_time
+
+}
+
+void StatsGenerator::setup(std::vector<std::bitset<4>> errorArray , std::vector<std::string> messageArray){
+    // total_messages = messageArray.size(); //initially I have n messages
+    std::bitset<4> errorCode;
+    std::string tempMsg;
+    for(int i=0 ; i < errorArray.size(); i++){
+        errorCode = errorArray[i];
+        tempMsg = messageArray[i];
+
+        if(errorCode != 0b0000){
+            erroneous_messages++;
+        }
+
+        //modified
+        if(errorCode[3] == 1){
+            modified_messages++;
+            // if modified , i resend
+            total_messages++;
+            total_lengths += tempMsg.size()*8;
+        }
+        // lost
+        if(errorCode[2] == 1){
+            // if lost , i resend
+            lost_messages++;
+            total_messages++;
+            total_lengths += tempMsg.size()*8;
+        }
+        //duplicate
+        if(errorCode[1] == 1){
+            // duplicate means twice , right ?
+            total_messages++;
+            total_lengths += tempMsg.size()*8;
+        }
+
+        total_lengths += tempMsg.size() * 8; // for every letter in message is 8 bits
+        total_messages++;
+    }
+
 }
 
 StatsGenerator::~StatsGenerator() {
   // Open the file for writing
+  std::remove("sims_stats.txt"); // if the file exists , deletes
+
   std::ofstream outFile("sim_stats.txt");
 
   // Check if the file was opened successfully
@@ -45,3 +79,5 @@ StatsGenerator::~StatsGenerator() {
     outFile.close();
   }
 }
+
+

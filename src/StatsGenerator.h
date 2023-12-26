@@ -17,18 +17,27 @@
 #define STATSGENERATOR_H_
 
 #include <fstream>
-#include <string.h>
+#include <vector>
+#include <string>
+#include <bitset>
+#include <iostream>
+
 
 class StatsGenerator {
 public:
-    int lost_messages;
-    int modified_messages;
-    int erroneous_messages;
-    int total_messages;
-    int total_lengths;
-    double time_taken_for_send;
 
-  StatsGenerator();
+    int lost_messages = 0;
+    int modified_messages = 0;
+    int erroneous_messages = 0;
+    int total_messages = 0;
+    int total_lengths = 0;
+    double time_taken_for_send = 0.0;
+
+
+
+    StatsGenerator();
+    void setup(std::vector<std::bitset<4>> errorArray , std::vector<std::string> messageArray);
+
   virtual ~StatsGenerator();
 };
 

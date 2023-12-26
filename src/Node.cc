@@ -14,6 +14,7 @@
 //
 
 #include "Node.h"
+#include "StatsGenerator.h"
 
 Define_Module(Node);
 
@@ -22,9 +23,11 @@ Define_Module(Node);
 
 // static int control_frame_expected = 0;
 
-static std::vector<Node::ErrorCodeType_t> errorArray;
-static std::vector<std::string> messageArray;
-// StatsGenerator stats;
+std::vector<std::bitset<4>> errorArrayStatsGenerator;
+StatsGenerator stats;
+// static std::vector<std::string> messageArray;
+
+
 // static int size_of_Array;
 // static int frame_to_print = 1;
 
@@ -51,6 +54,14 @@ void Node::handleMessage(cMessage *msg)
             std::string filename = static_cast<std::string>(mmsg->getPayload());
             // read messages
             this->readMessages(filename, this->errorArray, this->messageArray);
+
+            for(int i=0 ; i<this->errorArray.size(); i++){
+                std::bitset<4> errorCode(static_cast<unsigned long>(errorArray[i]));
+                errorArrayStatsGenerator.push_back(errorCode);
+            }
+
+            stats.setup(errorArrayStatsGenerator,this->messageArray);
+
             this->sender_max_sequence_number = 2 * sender_window_size - 1;
             for (int i = 0; i < this->messageArray.size(); i++)
             {

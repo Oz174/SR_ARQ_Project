@@ -25,7 +25,6 @@
 #include <direct.h>
 #include <time.h>
 #include "Message_m.h"
-#include "StatsGenerator.h"
 #include <vector>
 
 #define Delay 0
@@ -91,6 +90,9 @@ class Node : public cSimpleModule
         void framingByteStuffing(Message *mptr, std::string &payload, int seq,
                 bool modifiedFlag);
 
+        std::vector<ErrorCodeType_t> errorArray;
+        std::vector<std::string> messageArray;
+
 
   private:
 
@@ -120,8 +122,6 @@ class Node : public cSimpleModule
       void send_ACK_or_NACK (Message *msg,bool is_ack, int seq_number);
       // private data members
       int is_sender = -1;
-      std::vector<ErrorCodeType_t> errorArray;
-      std::vector<std::string> messageArray;
 
       //receiver
       // int receiver_window_size = par("WindowSize").intValue();
