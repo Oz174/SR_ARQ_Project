@@ -158,11 +158,13 @@ void Node::handleMessage(cMessage *msg)
                         break;
                     }
                 }
+
                 sendLogic(mmsg, msg_index,true);
             }
 
             return;
         }
+
 
         // sender
         if (!msg->isSelfMessage())
@@ -573,15 +575,12 @@ void Node::sendLogic(Message *msg, int msg_index , bool retransmitted)
     // 3ayz a-check 3l error code l kol message (in each line from file) abl ma ab3t
 
     readingPrint(this->errorArray[msg_index]); // I might need to comment it
-
     std::bitset<4> tmp_bits(this->errorArray[msg_index]); // 0b0100 --> LSB is 0
     if (!retransmitted){
-    framingByteStuffing(msg, this->messageArray[msg_index], msg_index, tmp_bits[Modification]);
-
+        framingByteStuffing(msg, this->messageArray[msg_index], msg_index, tmp_bits[Modification]);
     }
     else{
-    framingByteStuffing(msg, this->messageArray[msg_index], msg_index, 0);
-
+        framingByteStuffing(msg, this->messageArray[msg_index], msg_index, 0);
     }
 
     double delay_time =
@@ -589,17 +588,14 @@ void Node::sendLogic(Message *msg, int msg_index , bool retransmitted)
 
     // delay_time += par("ProcessingTime").doubleValue() + par("TransmissionDelay").doubleValue();
     delay_time += par("TransmissionDelay").doubleValue();
+    // we need to sleep with processing time 0.5 before calling sendMessageDelay
     if (tmp_bits[Dup] == 1 && !retransmitted)
     {
-
         selfMessageDuplicate(msg, delay_time);
     }
     else
     {
-        // we need to sleep with processing time 0.5 before calling sendMessageDelay
-        wait(par("ProcessingTime").doubleValue());
         selfMessageDelay(msg, delay_time, retransmitted);
-
     }
 
 }
