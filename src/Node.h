@@ -43,6 +43,7 @@ class Node : public cSimpleModule
   protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
+    virtual void finish() override;
   public:
 
         static std::fstream outputFile;
@@ -105,7 +106,7 @@ class Node : public cSimpleModule
       //DONE
       void readingPrint(ErrorCodeType_t errorCode);
       void beforeTransmissionPrint(Message *msg, ErrorCodeType_t input);
-      void controlPrint(Message *msg, bool lost);
+      void controlPrint(Message *msg, bool is_sender , int ack_no);
       void timeoutPrint(Message *msg);
       //DONE
       void selfMessageDelay(Message *msg, double delay,bool retransmitted);
@@ -113,13 +114,16 @@ class Node : public cSimpleModule
       //DONE
       void sendDelayedMsg(Message *msg);
       void sendLogic(Message *msg, int msg_index, bool retransmitted);
-      //DONE
-      static void openOutputFile();
+
       void writeToFile();
       //processing frames
       void processFrames(int start_index,int end_index,bool retransmitted);
       //response from the receiver
       void send_ACK_or_NACK (Message *msg,bool is_ack, int seq_number);
+
+
+
+      // virtual ~Node();
       // private data members
       int is_sender = -1;
 

@@ -1,8 +1,8 @@
 version 3
-run General-0-20231226-20:36:46-12132
+run General-0-20231226-23:30:32-26064
 attr configname General
-attr datetime 20231226-20:36:46
-attr datetimef 20231226-203646
+attr datetime 20231226-23:30:32
+attr datetimef 20231226-233032
 attr experiment General
 attr inifile omnetpp.ini
 attr iterationvars ""
@@ -10,7 +10,7 @@ attr iterationvarsd ""
 attr iterationvarsf ""
 attr measurement ""
 attr network sr_arq_project.Network
-attr processid 12132
+attr processid 26064
 attr repetition 0
 attr replication #0
 attr resultdir results
@@ -22,23 +22,22 @@ config **.TimeoutInterval (10)
 config **.ProcessingTime (0.5)
 config **.TransmissionDelay (1.0)
 config **.ErrorDelay (4.0)
-config **.DuplicationDelay (0.1)
+config **.DuplicationDelay (4.0)
 config debug-on-errors true
 config cmdenv-autoflush true
-config cmdenv-output-file "E:\\omnetpp-6.0.1\\samples\\tictoc\\SR_ARQ_Project\\simulations\\output1.txt"
 config cmdenv-redirect-output true
 
 par Network.coordinator typename "\"sr_arq_project.Coordinator\""
 par Network.Node0 typename "\"sr_arq_project.Node\""
 par Network.Node0 ProcessingTime 0.5
-par Network.Node0 DuplicationDelay 0.1
+par Network.Node0 DuplicationDelay 4
 par Network.Node0 TransmissionDelay 1
 par Network.Node0 ErrorDelay 4
 par Network.Node0 WindowSize 3
 par Network.Node0 TimeoutInterval 10
 par Network.Node1 typename "\"sr_arq_project.Node\""
 par Network.Node1 ProcessingTime 0.5
-par Network.Node1 DuplicationDelay 0.1
+par Network.Node1 DuplicationDelay 4
 par Network.Node1 TransmissionDelay 1
 par Network.Node1 ErrorDelay 4
 par Network.Node1 WindowSize 3

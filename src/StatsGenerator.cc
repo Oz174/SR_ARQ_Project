@@ -70,7 +70,7 @@ time_taken_for_send += timer;
 
 StatsGenerator::~StatsGenerator() {
   // Open the file for writing
-  std::remove("sims_stats.txt"); // if the file exists , deletes
+  // std::remove("sims_stats.txt"); // if the file exists , deletes
 
   std::ofstream outFile("sim_stats.txt");
 

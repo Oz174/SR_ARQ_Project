@@ -55,6 +55,9 @@ void Node::handleMessage(cMessage *msg)
             // read messages
             this->readMessages(filename, this->errorArray, this->messageArray);
 
+            this->readingPrint(this->errorArray[0]); // Coordinator first message
+
+
             for(int i=0 ; i<this->errorArray.size(); i++){
                 std::bitset<4> errorCode(static_cast<unsigned long>(errorArray[i]));
                 errorArrayStatsGenerator.push_back(errorCode);
@@ -94,6 +97,8 @@ void Node::handleMessage(cMessage *msg)
 
                 int ack_no = mmsg->getAck_no();
 
+                controlPrint(mmsg, true, ack_no);
+
                 ack_no = (ack_no == 0) ? 6 : ack_no;
 
                 int ack_index_number = -1;
@@ -114,6 +119,7 @@ void Node::handleMessage(cMessage *msg)
                         break;
                     }
                 }
+
 
                 // advance to the next window
                 int index_to_advance_to = ack_index_number;
@@ -141,12 +147,14 @@ void Node::handleMessage(cMessage *msg)
                 // I would have to re-transmit on nack
                 int msg_index = -1;
                 EV << "Sequence Number: " << mmsg->getAck_no() << " message is NACK\n";
+                controlPrint(mmsg, true, mmsg->getAck_no());
                 for (int i = (mmsg->getAck_no()); i < ACK_sequences.size(); i += (this->sender_max_sequence_number + 1))
                 {
                     if (ACK_sequences[i] == 0)
                     {
                         // etb3tli nack 3 , as long u r not ack then get me the index
                         msg_index = i;
+
                         break;
                     }
                 }
@@ -190,6 +198,7 @@ void Node::handleMessage(cMessage *msg)
                     {
                         this->expected_seqence_number = check_sequence_number;
                         this->send_ACK_or_NACK(new Message, true, check_sequence_number);
+                        controlPrint(mmsg, false , check_sequence_number);
                         break;
                     }
                     //if (Data_received[check_sequence_number] == 1 && (i == receiver_window_size - 1 || i == this->receiver_max_sequence_number))
@@ -219,12 +228,12 @@ void Node::handleMessage(cMessage *msg)
                     }
                 }
             }
-            // TODO: send multiple ACKs
             else
             {
                 if (this->NACK_Sent[mmsg->getHeader()] == 0)
                 {
                     this->send_ACK_or_NACK(new Message, false, mmsg->getHeader());
+                    controlPrint(mmsg, false , mmsg->getHeader());
                     this->NACK_Sent[mmsg->getHeader()] = 1;
                 }
             }
@@ -232,7 +241,7 @@ void Node::handleMessage(cMessage *msg)
         else if (!(mmsg->getHeader() > ((this->expected_seqence_number + receiver_window_size- 1 ) % (this->sender_max_sequence_number + 1))))
         // this condition handles if sender retransmitted an already acknowledged frame
         {
-            // ACK/NACK message for currently received
+            // NACK message for currently received frame if it has error
 
             if (!this->errorDetection(mmsg))
             {
@@ -244,15 +253,19 @@ void Node::handleMessage(cMessage *msg)
                 {
                     this->NACK_Sent[mmsg->getHeader()] = 1;
                     this->send_ACK_or_NACK(new Message, false, mmsg->getHeader());
+
+                    controlPrint(mmsg, false , mmsg->getHeader());
                 }
             }
 
-            // NACK message for expected frame
+            // NACK message for expected frame if out of order (tricky)
 
             if (this->NACK_Sent[expected_seqence_number] == 0)
             {
                 this->NACK_Sent[expected_seqence_number] = 1;
                 this->send_ACK_or_NACK(new Message, false, this->expected_seqence_number);
+                // tricky controlPrint , assume lost even if delayed until we work around errorCodeType_T using an index ...
+                controlPrint(mmsg, false, this->expected_seqence_number);
             }
         }
     }
@@ -262,10 +275,8 @@ void Node::handleMessage(cMessage *msg)
 void Node::readingPrint(ErrorCodeType_t errorCode)
 {
 
-    std::string node_reading = "At time [" + simTime().str() + "], Node[" + this->getName()[4] + +"], Introducing channel error with code = " + std::bitset<4>(errorCode).to_string() + "\n";
-    static int i = 0;
-    std::cout << node_reading << "  i = " << i << std::endl;
-    i++;
+    std::string node_reading = "At time [" + simTime().str() + "], Node[" + this->getName()[4] + +"], Introducing channel error with code = " + std::bitset<4>(errorCode).to_string();
+
     outputBuffer.push_back(node_reading);
 }
 void Node::beforeTransmissionPrint(Message *msg, ErrorCodeType_t input)
@@ -283,21 +294,23 @@ void Node::beforeTransmissionPrint(Message *msg, ErrorCodeType_t input)
         lost = "Yes";
     }
 
-    float delay = 0;
+    float delay = 0; // kda kda fe td
+
     if (code[0] == 1)
     {
-        delay = par("ErrorDelay").doubleValue();
+        delay += par("ErrorDelay").doubleValue();
     }
 
+    double pt = par("ProcessingTime").doubleValue();
     std::string line_to_print = "At time [" + simTime().str() + "] Node[" + this->getName()[4] + "] sent frame with seq_num=[" + std::to_string(msg->getHeader()) + "], and payload=[" + msg->getPayload() + "], and trailer =[" + trailer_bits.to_string() + "] ,Lost [" + lost + "], Duplicate [" + std::to_string(msg->getType()) + "], Delay [" + std::to_string(delay) + "].\n";
 
     std::cout << line_to_print << std::endl;
     outputBuffer.push_back(line_to_print);
 }
-void Node::controlPrint(Message *msg, bool lost)
+void Node::controlPrint(Message *msg, bool is_sender , int ack_no)
 {
     std::string ack;
-    std::string loss = (lost) ? "Yes" : "No";
+    std::string send_or_receive = (is_sender) ? "recived" : "sent";
     if (msg->getType() == 2)
     {
         ack = "NACK";
@@ -308,9 +321,11 @@ void Node::controlPrint(Message *msg, bool lost)
     }
     else
     { /*nothing*/
+        return;
     }
 
-    std::string line_to_print = "At time [" + simTime().str() + "], Node[" + this->getName()[4] + "] Sending [" + ack + "] with number[" + std::to_string(msg->getAck_no()) + "], loss [" + loss + "]\n";
+    std::string line_to_print = "At time [" + simTime().str() + "], Node[" + this->getName()[4] + "]" + send_or_receive + "[" + ack + "] with number[" + std::to_string(ack_no) + "]";
+
 
     std::cout << line_to_print << std::endl;
     outputBuffer.push_back(line_to_print);
@@ -387,24 +402,18 @@ void Node::readMessages(std::string &fileName,
 
 // 1 - Open the File (pretty much intuitive , right ? )
 // med eidak ya tayel mn el shora3 w efta7 el bab
-void Node::openOutputFile()
-{
 
-    outputFile.open("output.txt", std::ios::out | std::ios::trunc);
-
-    // Return if file was not opened
-    if (!outputFile.is_open())
-    {
-        std::cerr << "[NODE] Error opening output file." << std::endl;
-        return;
-    }
-}
 
 // 2- Squeeze the buffer to write in output.txt
 // buffer : ana sponge-bob
 void Node::writeToFile()
 {
-    openOutputFile();
+    std::remove("output.txt"); // if the file exists , deletes
+
+    // std::ofstream outputFile("output.txt");
+
+    outputFile.open("output.txt", std::ios::out | std::ios::trunc);
+
     for (auto it : outputBuffer)
     {
         outputFile << it << std::endl;
@@ -419,7 +428,7 @@ void Node::writeToFile()
 void Node::selfMessageDelay(Message *msg, double delay,bool retransmitted)
 {
     cancelEvent(msg);
-    beforeTransmissionPrint(msg, errorArray[msg->getHeader()]);
+
     //    scheduleAt(simTime() + delay, msg);
     // sending to other node
     std::bitset<4> tmp_bits(errorArray[msg->getHeader()]); // 0b0100 --> LSB is 0
@@ -430,6 +439,7 @@ void Node::selfMessageDelay(Message *msg, double delay,bool retransmitted)
     if (tmp_bits[Loss] != 1 || retransmitted)
     {
         sendDelayed(msg, delay, "out");
+        beforeTransmissionPrint(msg, errorArray[msg->getHeader()]);
     }
 }
 void Node::selfMessageDuplicate(Message *msg, double delay)
@@ -442,6 +452,7 @@ void Node::selfMessageDuplicate(Message *msg, double delay)
 
     selfMessageDelay(msg, delay,0);
     selfMessageDelay(duplicatedMessage, delay + duplicationDelay,0);
+    beforeTransmissionPrint(msg, errorArray[msg->getHeader()]);
 }
 
 // It's time for the data link to do its job
@@ -507,10 +518,13 @@ void Node::framingByteStuffing(Message *mptr, std::string &payload, int seq,
     if (modificationFlag == 1)
         modifyMessage(modified);
 
+
+
     mptr->setPayload(modified.c_str());
     mptr->setHeader(seq);
     mptr->setTrailer(checksum);
     mptr->setType(MsgType_t::Data);
+
 }
 
 // msh sa2altny so2al ? agaweb b2a sa3adtak
@@ -558,18 +572,23 @@ void Node::sendLogic(Message *msg, int msg_index , bool retransmitted)
 {
     // 3ayz a-check 3l error code l kol message (in each line from file) abl ma ab3t
 
-    std::bitset<4> tmp_bits(errorArray[msg_index]); // 0b0100 --> LSB is 0
+    readingPrint(this->errorArray[msg_index]); // I might need to comment it
+
+    std::bitset<4> tmp_bits(this->errorArray[msg_index]); // 0b0100 --> LSB is 0
     if (!retransmitted){
-    framingByteStuffing(msg, messageArray[msg_index], msg_index, tmp_bits[Modification]);
+    framingByteStuffing(msg, this->messageArray[msg_index], msg_index, tmp_bits[Modification]);
+
     }
     else{
-    framingByteStuffing(msg, messageArray[msg_index], msg_index, 0);
+    framingByteStuffing(msg, this->messageArray[msg_index], msg_index, 0);
+
     }
 
     double delay_time =
         (tmp_bits[Delay] == 1) ? par("ErrorDelay").doubleValue() : 0;
 
-    delay_time += par("ProcessingTime").doubleValue() + par("TransmissionDelay").doubleValue();
+    // delay_time += par("ProcessingTime").doubleValue() + par("TransmissionDelay").doubleValue();
+    delay_time += par("TransmissionDelay").doubleValue();
     if (tmp_bits[Dup] == 1 && !retransmitted)
     {
 
@@ -577,8 +596,12 @@ void Node::sendLogic(Message *msg, int msg_index , bool retransmitted)
     }
     else
     {
+        // we need to sleep with processing time 0.5 before calling sendMessageDelay
+        wait(par("ProcessingTime").doubleValue());
         selfMessageDelay(msg, delay_time, retransmitted);
+
     }
+
 }
 
 // processing frames in sender
@@ -643,8 +666,14 @@ void Node::send_ACK_or_NACK(Message *msg, bool is_ack, int seq_number)
     {
         // set as NACK
         msg->setType(2);
+
     }
     double delay = par("ProcessingTime").doubleValue() + par("TransmissionDelay").doubleValue();
 
+
     sendDelayed(msg, delay, "out");
+}
+
+void Node::finish(){
+    writeToFile();
 }

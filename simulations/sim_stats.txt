@@ -1,5 +1,5 @@
 Loss Rate: 0.235294
 Modification Rate: 0.0588235
 Channel Efficiency: 0.411765
-Average Length of sent Messages: 28.7059
+Average Length of sent Messages: 42.3529
 Average Time taken: 0
