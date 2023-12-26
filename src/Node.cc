@@ -476,6 +476,8 @@ void Node::modifyMessage(std::string &payload)
 void Node::framingByteStuffing(Message *mptr, std::string &payload, int seq,
                                bool modificationFlag)
 {
+    int updateSize = 2; // including the 2 dollar signs below , this to update the length in statsGenerator
+
     std::string modified = "$"; // flag fl awel
     int payloadSize = payload.size();
 
@@ -486,10 +488,12 @@ void Node::framingByteStuffing(Message *mptr, std::string &payload, int seq,
         if (c == '$')
         {
             modified += "/$"; // escape b4 accidental flag
+            updateSize++; // ana bzwd wa7d bas 34an ana already 7asabt el accidental dollar sign fl setup func
         }
         else if (c == '/')
         {
             modified += "//"; // escape b4 accidental escape
+            updateSize++;
         }
         else
         {
@@ -497,6 +501,7 @@ void Node::framingByteStuffing(Message *mptr, std::string &payload, int seq,
         }
     }
     modified += "$"; // flag fl a5r
+    stats.updateMsgLength(updateSize);
 
     char checksum = calculateChecksum(modified);
     if (modificationFlag == 1)

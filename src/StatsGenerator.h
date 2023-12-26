@@ -37,6 +37,8 @@ public:
 
     StatsGenerator();
     void setup(std::vector<std::bitset<4>> errorArray , std::vector<std::string> messageArray);
+    void updateMsgLength(int updateSize);
+    void updateTimer(double timer);
 
   virtual ~StatsGenerator();
 };

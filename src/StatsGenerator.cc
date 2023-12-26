@@ -60,6 +60,14 @@ void StatsGenerator::setup(std::vector<std::bitset<4>> errorArray , std::vector<
 
 }
 
+void StatsGenerator::updateMsgLength(int updateSize){
+total_lengths += 8 * updateSize;
+}
+
+void StatsGenerator::updateTimer(double timer){
+time_taken_for_send += timer;
+}
+
 StatsGenerator::~StatsGenerator() {
   // Open the file for writing
   std::remove("sims_stats.txt"); // if the file exists , deletes
