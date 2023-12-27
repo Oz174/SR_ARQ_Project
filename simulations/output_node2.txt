@@ -1,0 +1,62 @@
+At time [2], Node[0], Introducing channel error with code = 0000
+At time [2.5], Node[0], Introducing channel error with code = 0000
+At time [3], Node[0], Introducing channel error with code = 0000
+At time [2.5] Node[0]sentframe with seq_num=[0], and payload=[$ aaaa$], and trailer =[00100000] , Modified [-1],Lost [No], Duplicate [0], Delay [0.000000].
+
+At time [3] Node[0]sentframe with seq_num=[1], and payload=[$ b#bbb$], and trailer =[00000011] , Modified [-1],Lost [No], Duplicate [0], Delay [0.000000].
+
+At time [3.5] Node[0]sentframe with seq_num=[2], and payload=[$ ccc//#c#$], and trailer =[00100000] , Modified [-1],Lost [No], Duplicate [0], Delay [0.000000].
+
+At time [3.5] Node[1]recievedframe with seq_num=[0], and payload=[$ aaaa$], and trailer =[00100000],and Modified [-1], Lost[No], Duplicate[0], Delay[0]
+
+At time [4], Node[1]sent[ACK] with number[1]
+At time [4] Node[1]recievedframe with seq_num=[1], and payload=[$ b#bbb$], and trailer =[00000011],and Modified [-1], Lost[No], Duplicate[0], Delay[0]
+
+At time [4.5], Node[1]sent[ACK] with number[2]
+At time [4.5] Node[1]recievedframe with seq_num=[2], and payload=[$ ccc//#c#$], and trailer =[00100000],and Modified [-1], Lost[No], Duplicate[0], Delay[0]
+
+At time [5], Node[1]sent[ACK] with number[3]
+At time [5], Node[0]recived[ACK] with number[1]
+At time [5], Node[0], Introducing channel error with code = 1000
+At time [5.5], Node[0]recived[ACK] with number[2]
+At time [5.5], Node[0], Introducing channel error with code = 0100
+At time [5.5] Node[0]sentframe with seq_num=[3], and payload=[$ qa$], and trailer =[00100000] , Modified [1],Lost [No], Duplicate [0], Delay [0.000000].
+
+At time [6], Node[0]recived[ACK] with number[3]
+At time [6], Node[0], Introducing channel error with code = 0000
+At time [6] Node[0]sentframe with seq_num=[4], and payload=[$ bb$], and trailer =[00100000] , Modified [-1],Lost [Yes], Duplicate [0], Delay [0.000000].
+
+At time [6.5] Node[1]recievedframe with seq_num=[3], and payload=[$ qa$], and trailer =[00100000],and Modified [1], Lost[No], Duplicate[0], Delay[0]
+
+At time [7], Node[1]sent[NACK] with number[3]
+At time [6.5] Node[0]sentframe with seq_num=[5], and payload=[$ cc$], and trailer =[00100000] , Modified [-1],Lost [No], Duplicate [0], Delay [0.000000].
+
+At time [7.5] Node[1]recievedframe with seq_num=[5], and payload=[$ cc$], and trailer =[00100000],and Modified [-1], Lost[No], Duplicate[1], Delay[0]
+
+At time [8], Node[0]recived[NACK] with number[3]
+At time [8], Node[0], Introducing channel error with code = 1000
+At time [8.5] Node[0]sentframe with seq_num=[3], and payload=[$ aa$], and trailer =[00100000] , Modified [1],Lost [No], Duplicate [0], Delay [0.000000].
+
+At time [9.5] Node[1]recievedframe with seq_num=[3], and payload=[$ aa$], and trailer =[00100000],and Modified [-1], Lost[No], Duplicate[0], Delay[0]
+
+At time [10], Node[1]sent[ACK] with number[4]
+At time [11], Node[0]recived[ACK] with number[4]
+At time [11], Node[0], Introducing channel error with code = 0001
+At time [11.5] Node[0]sentframe with seq_num=[0], and payload=[$ dd$], and trailer =[00100000] , Modified [-1],Lost [No], Duplicate [0], Delay [0.000000].
+
+At time [16.5] Node[1]recievedframe with seq_num=[0], and payload=[$ dd$], and trailer =[00100000],and Modified [-1], Lost[No], Duplicate[0], Delay[0]
+
+At time [17], Node[1]sent[NACK] with number[4]
+At time [18], Node[0]recived[NACK] with number[4]
+At time [18], Node[0], Introducing channel error with code = 0100
+At time [18.5] Node[0]sentframe with seq_num=[4], and payload=[$ bb$], and trailer =[00100000] , Modified [-1],Lost [Yes], Duplicate [0], Delay [0.000000].
+
+At time [19.5] Node[1]recievedframe with seq_num=[4], and payload=[$ bb$], and trailer =[00100000],and Modified [-1], Lost[No], Duplicate[0], Delay[0]
+
+At time [20], Node[1]sent[ACK] with number[5]
+At time [21], Node[0], Introducing channel error with code = 0100
+At time [21], Node[0]recived[ACK] with number[5]
+At time [21.5] Node[0]sentframe with seq_num=[4], and payload=[$ bb$], and trailer =[00100000] , Modified [-1],Lost [Yes], Duplicate [0], Delay [0.000000].
+
+At time [22.5] Node[1]recievedframe with seq_num=[4], and payload=[$ bb$], and trailer =[00100000],and Modified [-1], Lost[No], Duplicate[1], Delay[0]
+
