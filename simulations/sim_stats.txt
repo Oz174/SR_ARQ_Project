@@ -1,5 +1,5 @@
-Loss Rate: nan
-Modification Rate: nan
-Channel Efficiency: nan
-Average Length of sent Messages: nan
-Average Time taken: 0
+Loss Rate: 0.235294
+Modification Rate: 0.0588235
+Channel Efficiency: 0.411765
+Average Length of sent Messages: 38.5882
+Average Time taken: 48.5

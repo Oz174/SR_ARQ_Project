@@ -21,13 +21,13 @@ At time [5], Node[0]recived[ACK] with number[1]
 At time [5], Node[0], Introducing channel error with code = 1000
 At time [5.5], Node[0]recived[ACK] with number[2]
 At time [5.5], Node[0], Introducing channel error with code = 0100
-At time [5.5] Node[0]sentframe with seq_num=[3], and payload=[$ ca$], and trailer =[00100000] , Modified [1],Lost [No], Duplicate [0], Delay [0.000000].
+At time [5.5] Node[0]sentframe with seq_num=[3], and payload=[$ qa$], and trailer =[00100000] , Modified [1],Lost [No], Duplicate [0], Delay [0.000000].
 
 At time [6], Node[0]recived[ACK] with number[3]
 At time [6], Node[0], Introducing channel error with code = 0000
 At time [6] Node[0]sentframe with seq_num=[4], and payload=[$ bb$], and trailer =[00100000] , Modified [-1],Lost [Yes], Duplicate [0], Delay [0.000000].
 
-At time [6.5] Node[1]recievedframe with seq_num=[3], and payload=[$ ca$], and trailer =[00100000],and Modified [1], Lost[No], Duplicate[0], Delay[0]
+At time [6.5] Node[1]recievedframe with seq_num=[3], and payload=[$ qa$], and trailer =[00100000],and Modified [1], Lost[No], Duplicate[0], Delay[0]
 
 At time [7], Node[1]sent[NACK] with number[3]
 At time [6.5] Node[0]sentframe with seq_num=[5], and payload=[$ cc$], and trailer =[00100000] , Modified [-1],Lost [No], Duplicate [0], Delay [0.000000].

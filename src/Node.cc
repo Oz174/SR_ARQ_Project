@@ -151,7 +151,7 @@ void Node::handleMessage(cMessage *msg)
                 EV << "i will advance to: " << mmsg->getAck_no() << " message is ACK\n";
 
                 EV << "first index: " << index_to_advance_to << " last index " << last_index << "\n";
-
+                stats.updateTimer(simTime().dbl());
                 if (index_to_advance_to >= this->messageArray.size())
                 {
                     // if index to advance to finished messages to send end program
