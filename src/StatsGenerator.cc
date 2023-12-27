@@ -72,7 +72,8 @@ StatsGenerator::~StatsGenerator() {
   // Open the file for writing
   // std::remove("sims_stats.txt"); // if the file exists , deletes
 
-  std::ofstream outFile("sim_stats.txt");
+  std::ofstream outFile;
+  outFile.open("sim_stats.txt", std::ios::out | std::ios::trunc);
 
   // Check if the file was opened successfully
   if (outFile.is_open()) {

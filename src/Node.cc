@@ -55,7 +55,7 @@ void Node::handleMessage(cMessage *msg)
             // read messages
             this->readMessages(filename, this->errorArray, this->messageArray);
 
-            this->readingPrint(this->errorArray[0]); // Coordinator first message
+            // this->readingPrint(this->errorArray[0], 0); // Coordinator first message
 
 
             for(int i=0 ; i<this->errorArray.size(); i++){
@@ -101,12 +101,13 @@ void Node::handleMessage(cMessage *msg)
                     ACK_sequences[check_number] = 1; // to make sure that it no longer retransmits
                     return;
                 }
-                else {
+                /*else {
                     return;
-                }
+                }*/
 
 
-                //int current_last_ack = -1;
+                // int current_last_ack = -1;
+
 
                 //get current last ack
                 /*if (this->ACK_sequences[0]!= 0)
@@ -115,11 +116,14 @@ void Node::handleMessage(cMessage *msg)
                     {
                         if (ACK_sequences[i]==1)
                         {
+                            ack_index = i ;
                             current_last_ack=ACK_sequences[i];
                         }
 
                     }
                 }*/
+
+
                 // check for re-transmission
                 /*if (previous_last_ack<current_last_ack)
                 {
@@ -380,6 +384,7 @@ void Node::readingPrint(ErrorCodeType_t errorCode, double delayTime)
 {
 
     std::string node_reading = "At time [" + (simTime() + delayTime).str() + "], Node[" + this->getName()[4] + +"], Introducing channel error with code = " + std::bitset<4>(errorCode).to_string();
+    std::cout << node_reading << std::endl;
 
     outputBuffer.push_back(node_reading);
 }
@@ -410,7 +415,7 @@ void Node::beforeTransmissionPrint(Message *msg, ErrorCodeType_t input,std::stri
         modification = 1;
     }
 
-    double pt = par("ProcessingTime").doubleValue();
+    // double pt = par("ProcessingTime").doubleValue();
     std::string senderOrReciever="";
     std::string line_to_print="";
     if(is_sender){
@@ -814,5 +819,6 @@ void Node::send_ACK_or_NACK(Message *msg, bool is_ack, int seq_number)
 }
 
 void Node::finish(){
+    stats.~StatsGenerator();
     writeToFile();
 }
