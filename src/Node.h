@@ -104,9 +104,9 @@ class Node : public cSimpleModule
 
       bool errorDetection(Message *msg);
       //DONE
-      void readingPrint(ErrorCodeType_t errorCode);
-      void beforeTransmissionPrint(Message *msg, ErrorCodeType_t input);
-      void controlPrint(Message *msg, bool is_sender , int ack_no);
+      void readingPrint(ErrorCodeType_t errorCode, double delayTime=0.0);
+      void beforeTransmissionPrint(Message *msg, ErrorCodeType_t input, std::string recivedError="", int is_sender=1);
+      void controlPrint(Message *msg, bool is_sender , int ack_no,bool ackReciever = false);
       void timeoutPrint(Message *msg);
       //DONE
       void selfMessageDelay(Message *msg, double delay,bool retransmitted);

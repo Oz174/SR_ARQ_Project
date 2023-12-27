@@ -208,6 +208,8 @@ void Node::handleMessage(cMessage *msg)
             // add the message in data received
             if (!this->errorDetection(mmsg))
             {
+                // I recieved expected frame (hence not delayed, lost , or duplicated) and it has no modification error
+                beforeTransmissionPrint(mmsg,Node::ErrorCodeType_NoError,",and Modified [-1], Lost[No], Duplicate[0], Delay[0]",0);
                 this->NACK_Sent[mmsg->getHeader()] = 1;
                 this->Data_received[mmsg->getHeader()] = 1;
 
@@ -223,7 +225,7 @@ void Node::handleMessage(cMessage *msg)
                     {
                         this->expected_seqence_number = check_sequence_number;
                         this->send_ACK_or_NACK(new Message, true, check_sequence_number);
-                        controlPrint(mmsg, false , check_sequence_number);
+                        controlPrint(mmsg, false ,check_sequence_number,true);
                         break;
                     }
                     //if (Data_received[check_sequence_number] == 1 && (i == receiver_window_size - 1 || i == this->receiver_max_sequence_number))
@@ -255,10 +257,12 @@ void Node::handleMessage(cMessage *msg)
             }
             else
             {
+                // recived expected frame but it was modified (therefore not delayed, lost or duplicated)
+                beforeTransmissionPrint(mmsg,Node::ErrorCodeType_NoError,",and Modified [1], Lost[No], Duplicate[0], Delay[0]",0);
                 if (this->NACK_Sent[mmsg->getHeader()] == 0)
                 {
                     this->send_ACK_or_NACK(new Message, false, mmsg->getHeader());
-                    controlPrint(mmsg, false , mmsg->getHeader());
+                    controlPrint(mmsg, false , mmsg->getHeader(),false);
                     this->NACK_Sent[mmsg->getHeader()] = 1;
                 }
             }
@@ -267,19 +271,23 @@ void Node::handleMessage(cMessage *msg)
         // this condition handles if sender retransmitted an already acknowledged frame
         {
             // NACK message for currently received frame if it has error
+            // out of order message, i.e. delayed message
 
             if (!this->errorDetection(mmsg))
             {
+                beforeTransmissionPrint(mmsg,Node::ErrorCodeType_NoError,",and Modified [-1], Lost[No], Duplicate[0], Delay[0]",0);
                 this->Data_received[mmsg->getHeader()] = 1;
             }
             else
             {
+                beforeTransmissionPrint(mmsg,Node::ErrorCodeType_NoError,",and Modified [1], Lost[No], Duplicate[0], Delay[0]",0);
                 if (this->NACK_Sent[mmsg->getHeader()] == 0)
                 {
+
                     this->NACK_Sent[mmsg->getHeader()] = 1;
                     this->send_ACK_or_NACK(new Message, false, mmsg->getHeader());
 
-                    controlPrint(mmsg, false , mmsg->getHeader());
+                    controlPrint(mmsg, false , mmsg->getHeader(),false);
                 }
             }
 
@@ -290,21 +298,26 @@ void Node::handleMessage(cMessage *msg)
                 this->NACK_Sent[expected_seqence_number] = 1;
                 this->send_ACK_or_NACK(new Message, false, this->expected_seqence_number);
                 // tricky controlPrint , assume lost even if delayed until we work around errorCodeType_T using an index ...
-                controlPrint(mmsg, false, this->expected_seqence_number);
+                controlPrint(mmsg, false, this->expected_seqence_number,false);
             }
+        }
+        else{
+            // duplicated
+            beforeTransmissionPrint(mmsg,Node::ErrorCodeType_NoError,",and Modified [-1], Lost[No], Duplicate[1], Delay[0]",0);
+
         }
     }
 }
 
 // Printing in console and pushing back in the output buffer for file writing
-void Node::readingPrint(ErrorCodeType_t errorCode)
+void Node::readingPrint(ErrorCodeType_t errorCode, double delayTime)
 {
 
-    std::string node_reading = "At time [" + simTime().str() + "], Node[" + this->getName()[4] + +"], Introducing channel error with code = " + std::bitset<4>(errorCode).to_string();
+    std::string node_reading = "At time [" + (simTime() + delayTime).str() + "], Node[" + this->getName()[4] + +"], Introducing channel error with code = " + std::bitset<4>(errorCode).to_string();
 
     outputBuffer.push_back(node_reading);
 }
-void Node::beforeTransmissionPrint(Message *msg, ErrorCodeType_t input)
+void Node::beforeTransmissionPrint(Message *msg, ErrorCodeType_t input,std::string recivedError , int is_sender)
 {
 
     // DONE: get the correct node id
@@ -326,30 +339,59 @@ void Node::beforeTransmissionPrint(Message *msg, ErrorCodeType_t input)
         delay += par("ErrorDelay").doubleValue();
     }
 
+    int modification = -1;
+    if (code[3] == 1) {
+        modification = 1;
+    }
+
     double pt = par("ProcessingTime").doubleValue();
-    std::string line_to_print = "At time [" + simTime().str() + "] Node[" + this->getName()[4] + "] sent frame with seq_num=[" + std::to_string(msg->getHeader()) + "], and payload=[" + msg->getPayload() + "], and trailer =[" + trailer_bits.to_string() + "] ,Lost [" + lost + "], Duplicate [" + std::to_string(msg->getType()) + "], Delay [" + std::to_string(delay) + "].\n";
+    std::string senderOrReciever="";
+    std::string line_to_print="";
+    if(is_sender){
+        senderOrReciever = "sent";
+       line_to_print = "At time [" + simTime().str() + "] Node[" + this->getName()[4] + "]" + senderOrReciever + "frame with seq_num=[" + std::to_string(msg->getHeader()) + "], and payload=[" + msg->getPayload() + "], and trailer =[" + trailer_bits.to_string() + "] , Modified ["+ std::to_string(modification) +"],Lost [" + lost + "], Duplicate [" + std::to_string(msg->getType()) + "], Delay [" + std::to_string(delay) + "].\n";
+    }
+    else{
+        senderOrReciever = "recieved";
+
+        line_to_print = "At time [" + simTime().str() + "] Node[" + this->getName()[4] + "]" + senderOrReciever + "frame with seq_num=[" + std::to_string(msg->getHeader()) + "], and payload=[" + msg->getPayload() + "], and trailer =[" + trailer_bits.to_string() + "]" + recivedError + "\n";
+    }
+
+
 
     std::cout << line_to_print << std::endl;
     outputBuffer.push_back(line_to_print);
 }
-void Node::controlPrint(Message *msg, bool is_sender , int ack_no)
+void Node::controlPrint(Message *msg, bool is_sender , int ack_no, bool ackReciever)
 {
     std::string ack;
     std::string send_or_receive = (is_sender) ? "recived" : "sent";
-    if (msg->getType() == 2)
-    {
-        ack = "NACK";
-    }
-    else if (msg->getType() == 1)
-    {
-        ack = "ACK";
-    }
-    else
-    { /*nothing*/
-        return;
+    double delay=0.0;
+    if(is_sender){
+        if (msg->getType() == 2)
+        {
+            ack = "NACK";
+        }
+        else if (msg->getType() == 1)
+        {
+            ack = "ACK";
+        }
+        else
+        { /*nothing*/
+            return;
+        }
+        delay = 0.0;
+    } else{
+        if (ackReciever) {
+            ack = "ACK";
+        }
+        else{
+            ack = "NACK";
+        }
+        delay = par("ProcessingTime").doubleValue();
     }
 
-    std::string line_to_print = "At time [" + simTime().str() + "], Node[" + this->getName()[4] + "]" + send_or_receive + "[" + ack + "] with number[" + std::to_string(ack_no) + "]";
+    std::string line_to_print = "At time [" + (simTime() + delay).str() + "], Node[" + this->getName()[4] + "]" + send_or_receive + "[" + ack + "] with number[" + std::to_string(ack_no) + "]";
 
 
     std::cout << line_to_print << std::endl;
@@ -464,6 +506,9 @@ void Node::selfMessageDelay(Message *msg, double delay,bool retransmitted)
     if (tmp_bits[Loss] != 1 || retransmitted)
     {
         sendDelayed(msg, delay, "out");
+        beforeTransmissionPrint(msg, errorArray[msg->getHeader()]);
+    }
+    else if(tmp_bits[Loss] == 1){
         beforeTransmissionPrint(msg, errorArray[msg->getHeader()]);
     }
 }
@@ -621,7 +666,7 @@ void Node::sendLogic(Message *msg, int msg_index , bool retransmitted, bool isSe
         }
     }
     else {
-        readingPrint(this->errorArray[msg_index]); // I might need to comment it
+        readingPrint(this->errorArray[msg_index],extraDelay); // I might need to comment it
         std::string req_parameters = std::to_string(msg_index) + "," + std::to_string((int)retransmitted);
         Message* dummy = new Message();
         dummy->setPayload(req_parameters.c_str());
@@ -672,7 +717,7 @@ void Node::processFrames(int start_index, int end_index, bool retransmitted)
                 if (!messageArray[i].empty())
                 {
                     EV << "Message " << i << " : " << this->messageArray[i] << "\n";
-                    this->sendLogic(msg, i,retransmitted,false,0.5*counter);
+                    this->sendLogic(msg, i,retransmitted,false,par("ProcessingTime").doubleValue()*counter);
                     counter++;
                 }
             }
