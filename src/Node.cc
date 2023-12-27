@@ -593,7 +593,7 @@ void Node::sendDelayedMsg(Message *msg)
     sendDelayed(msg, par("TransmissionDelay").doubleValue(), "out_gate");
 }
 
-void Node::sendLogic(Message *msg, int msg_index , bool retransmitted, bool isSelfMessage, int extraDelay)
+void Node::sendLogic(Message *msg, int msg_index , bool retransmitted, bool isSelfMessage, double extraDelay)
 {
     // 3ayz a-check 3l error code l kol message (in each line from file) abl ma ab3t
     if (isSelfMessage) {

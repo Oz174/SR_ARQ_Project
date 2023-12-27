@@ -4,14 +4,14 @@ At time [2], Node[0], Introducing channel error with code = 0000
 At time [2], Node[0], Introducing channel error with code = 0000
 At time [2.5] Node[0] sent frame with seq_num=[0], and payload=[$ aaaa$], and trailer =[00100000] ,Lost [No], Duplicate [0], Delay [0.000000].
 
-At time [2.5] Node[0] sent frame with seq_num=[1], and payload=[$ b#bbb$], and trailer =[00000011] ,Lost [No], Duplicate [0], Delay [0.000000].
+At time [3] Node[0] sent frame with seq_num=[1], and payload=[$ b#bbb$], and trailer =[00000011] ,Lost [No], Duplicate [0], Delay [0.000000].
 
 At time [3.5] Node[0] sent frame with seq_num=[2], and payload=[$ ccc//#c#$], and trailer =[00100000] ,Lost [No], Duplicate [0], Delay [0.000000].
 
 At time [5], Node[0]recived[ACK] with number[1]
 At time [5], Node[0], Introducing channel error with code = 1000
-At time [5], Node[0]recived[ACK] with number[2]
-At time [5], Node[0], Introducing channel error with code = 0100
+At time [5.5], Node[0]recived[ACK] with number[2]
+At time [5.5], Node[0], Introducing channel error with code = 0100
 At time [5.5] Node[0] sent frame with seq_num=[3], and payload=[$ aá$], and trailer =[00100000] ,Lost [No], Duplicate [0], Delay [0.000000].
 
 At time [6], Node[0]recived[ACK] with number[3]

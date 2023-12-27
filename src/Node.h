@@ -113,7 +113,7 @@ class Node : public cSimpleModule
       void selfMessageDuplicate(Message *msg, double delay);
       //DONE
       void sendDelayedMsg(Message *msg);
-      void sendLogic(Message *msg, int msg_index, bool retransmitted, bool isSelfMessage=false, int extraDelay=0);
+      void sendLogic(Message *msg, int msg_index, bool retransmitted, bool isSelfMessage=false, double extraDelay=0);
 
       void writeToFile();
       //processing frames
