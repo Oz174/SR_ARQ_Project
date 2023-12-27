@@ -94,12 +94,22 @@ void Node::handleMessage(cMessage *msg)
             //check if it is a re-transmission message
             if (mmsg->getType()==404)
             {
-                int previous_last_ack= mmsg->getHeader();
+                int check_number= mmsg->getHeader();
+                if (ACK_sequences[check_number] == 0){
+                    EV <<"RE TRANSMITTTTTTTTTTTTTTTTTTTTTTTTTTTT\n";
+                    sendLogic(new Message, check_number,true);
+                    ACK_sequences[check_number] = 1; // to make sure that it no longer retransmits
+                    return;
+                }
+                else {
+                    return;
+                }
 
-                int current_last_ack = -1;
+
+                //int current_last_ack = -1;
 
                 //get current last ack
-                if (this->ACK_sequences[0]!= 0)
+                /*if (this->ACK_sequences[0]!= 0)
                 {
                     for (int i =0 ; i< ACK_sequences.size();i++)
                     {
@@ -109,24 +119,26 @@ void Node::handleMessage(cMessage *msg)
                         }
 
                     }
-                }
+                }*/
                 // check for re-transmission
-                if (previous_last_ack==current_last_ack)
+                /*if (previous_last_ack<current_last_ack)
                 {
                     //no need for re-transmission
                     return;
-                }
+                }*/
 
-                for (int i =0 ; i< ACK_sequences.size();i++)
+                /*for (int i =0 ; i< ACK_sequences.size();i++)
                 {
                     //re-transmit required packets
                     if (ACK_sequences[i]==0 && sent_sequences[i] ==1)
                     {
                         EV <<"RE TRANSMITTTTTTTTTTTTTTTTTTTTTTTTTTTT\n";
                         sendLogic(new Message, i,true);
+                        ACK_sequences[i] = 1; // to make sure that it no longer retransmits
+                        return;
 
                     }
-                }
+                }*/
 
 
 
@@ -196,7 +208,7 @@ void Node::handleMessage(cMessage *msg)
                 EV << "first index: " << index_to_advance_to << " last index " << last_index << "\n";
                //set timer for re-transmisson
                Message* dummy3 = new Message();
-               dummy3->setHeader(index_to_advance_to-1);
+               dummy3->setHeader(index_to_advance_to);
                dummy3->setType(404);
                scheduleAt(simTime()+par("TimeoutInterval").doubleValue(),dummy3);
 
@@ -244,7 +256,7 @@ void Node::handleMessage(cMessage *msg)
            // processFrames( this->current_end_frame-sender_window_size +1,this->current_end_frame );
            //set timer for re-transmisson
            Message* dummy2 = new Message();
-           dummy2->setHeader(-1);
+           dummy2->setHeader(0);
            dummy2->setType(404);
            scheduleAt(simTime()+par("TimeoutInterval").doubleValue(),dummy2);
         }
