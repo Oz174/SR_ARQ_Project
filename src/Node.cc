@@ -90,6 +90,61 @@ void Node::handleMessage(cMessage *msg)
     if (this->is_sender == 1)
     {
         if (mmsg->isSelfMessage()){
+
+            //check if it is a re-transmission message
+            if (mmsg->getType()==404)
+            {
+                int check_number= mmsg->getHeader();
+                if (ACK_sequences[check_number] == 0){
+                    EV <<"RE TRANSMITTTTTTTTTTTTTTTTTTTTTTTTTTTT\n";
+                    sendLogic(new Message, check_number,true);
+                    ACK_sequences[check_number] = 1; // to make sure that it no longer retransmits
+                    return;
+                }
+                else {
+                    return;
+                }
+
+
+                //int current_last_ack = -1;
+
+                //get current last ack
+                /*if (this->ACK_sequences[0]!= 0)
+                {
+                    for (int i =0 ; i< ACK_sequences.size();i++)
+                    {
+                        if (ACK_sequences[i]==1)
+                        {
+                            current_last_ack=ACK_sequences[i];
+                        }
+
+                    }
+                }*/
+                // check for re-transmission
+                /*if (previous_last_ack<current_last_ack)
+                {
+                    //no need for re-transmission
+                    return;
+                }*/
+
+                /*for (int i =0 ; i< ACK_sequences.size();i++)
+                {
+                    //re-transmit required packets
+                    if (ACK_sequences[i]==0 && sent_sequences[i] ==1)
+                    {
+                        EV <<"RE TRANSMITTTTTTTTTTTTTTTTTTTTTTTTTTTT\n";
+                        sendLogic(new Message, i,true);
+                        ACK_sequences[i] = 1; // to make sure that it no longer retransmits
+                        return;
+
+                    }
+                }*/
+
+
+
+                return;
+            }
+
             std::string payloadString(mmsg->getPayload());
             std::string msg_index_s = "";
             std::string retransmitted_s = "";
@@ -152,6 +207,12 @@ void Node::handleMessage(cMessage *msg)
 
                 EV << "first index: " << index_to_advance_to << " last index " << last_index << "\n";
                 stats.updateTimer(simTime().dbl());
+               //set timer for re-transmisson
+               Message* dummy3 = new Message();
+               dummy3->setHeader(index_to_advance_to);
+               dummy3->setType(404);
+               scheduleAt(simTime()+par("TimeoutInterval").doubleValue(),dummy3);
+
                 if (index_to_advance_to >= this->messageArray.size())
                 {
                     // if index to advance to finished messages to send end program
@@ -192,8 +253,13 @@ void Node::handleMessage(cMessage *msg)
         // sender
         if (!msg->isSelfMessage())
         {
-            processFrames(0, sender_window_size - 1, false);
-            // processFrames( this->current_end_frame-sender_window_size +1,this->current_end_frame );
+           processFrames(0, sender_window_size - 1, false);
+           // processFrames( this->current_end_frame-sender_window_size +1,this->current_end_frame );
+           //set timer for re-transmisson
+           Message* dummy2 = new Message();
+           dummy2->setHeader(0);
+           dummy2->setType(404);
+           scheduleAt(simTime()+par("TimeoutInterval").doubleValue(),dummy2);
         }
     }
     else if (this->is_sender == 0)
