@@ -113,7 +113,7 @@ class Node : public cSimpleModule
       void selfMessageDuplicate(Message *msg, double delay);
       //DONE
       void sendDelayedMsg(Message *msg);
-      void sendLogic(Message *msg, int msg_index, bool retransmitted, bool isSelfMessage=false);
+      void sendLogic(Message *msg, int msg_index, bool retransmitted, bool isSelfMessage=false, int extraDelay=0);
 
       void writeToFile();
       //processing frames
@@ -135,6 +135,7 @@ class Node : public cSimpleModule
       int expected_seqence_number=0;
       std::vector<int> NACK_Sent;
       std::vector<int> Data_received;
+
 
       //Sender
       // int sender_window_size= par("WindowSize").intValue();

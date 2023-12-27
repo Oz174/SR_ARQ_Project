@@ -89,6 +89,29 @@ void Node::handleMessage(cMessage *msg)
 
     if (this->is_sender == 1)
     {
+        if (mmsg->isSelfMessage()){
+            std::string payloadString(mmsg->getPayload());
+            std::string msg_index_s = "";
+            std::string retransmitted_s = "";
+            bool commaPassed = false;
+            for(int i=0; i < payloadString.size(); i++){
+                if (commaPassed){
+                    retransmitted_s += payloadString[i];
+                }
+                else{
+                    if (payloadString[i]==','){
+                        commaPassed = true;
+                    }
+                    else {
+                        msg_index_s += payloadString[i];
+                    }
+                }
+            }
+            int msg_index = std::stoi(msg_index_s);
+            bool retransmitted = (bool)std::stoi(retransmitted_s);
+            sendLogic(mmsg,msg_index,retransmitted,true);
+            return;
+        }
         // message is ACK or NACK
         if (mmsg->getType() == 1 || mmsg->getType() == 2)
         {
@@ -570,33 +593,41 @@ void Node::sendDelayedMsg(Message *msg)
     sendDelayed(msg, par("TransmissionDelay").doubleValue(), "out_gate");
 }
 
-void Node::sendLogic(Message *msg, int msg_index , bool retransmitted)
+void Node::sendLogic(Message *msg, int msg_index , bool retransmitted, bool isSelfMessage, int extraDelay)
 {
     // 3ayz a-check 3l error code l kol message (in each line from file) abl ma ab3t
+    if (isSelfMessage) {
+        std::bitset<4> tmp_bits(this->errorArray[msg_index]); // 0b0100 --> LSB is 0
+        if (!retransmitted){
+            framingByteStuffing(msg, this->messageArray[msg_index], msg_index, tmp_bits[Modification]);
+        }
+        else{
+            framingByteStuffing(msg, this->messageArray[msg_index], msg_index, 0);
+        }
 
-    readingPrint(this->errorArray[msg_index]); // I might need to comment it
-    std::bitset<4> tmp_bits(this->errorArray[msg_index]); // 0b0100 --> LSB is 0
-    if (!retransmitted){
-        framingByteStuffing(msg, this->messageArray[msg_index], msg_index, tmp_bits[Modification]);
+        double delay_time =
+            (tmp_bits[Delay] == 1) ? par("ErrorDelay").doubleValue() : 0;
+
+        // delay_time += par("ProcessingTime").doubleValue() + par("TransmissionDelay").doubleValue();
+        delay_time += par("TransmissionDelay").doubleValue();
+        // we need to sleep with processing time 0.5 before calling sendMessageDelay
+        if (tmp_bits[Dup] == 1 && !retransmitted)
+        {
+            selfMessageDuplicate(msg, delay_time);
+        }
+        else
+        {
+            selfMessageDelay(msg, delay_time, retransmitted);
+        }
     }
-    else{
-        framingByteStuffing(msg, this->messageArray[msg_index], msg_index, 0);
+    else {
+        readingPrint(this->errorArray[msg_index]); // I might need to comment it
+        std::string req_parameters = std::to_string(msg_index) + "," + std::to_string((int)retransmitted);
+        Message* dummy = new Message();
+        dummy->setPayload(req_parameters.c_str());
+        scheduleAt(simTime()+par("ProcessingTime").doubleValue()+extraDelay,dummy);
     }
 
-    double delay_time =
-        (tmp_bits[Delay] == 1) ? par("ErrorDelay").doubleValue() : 0;
-
-    // delay_time += par("ProcessingTime").doubleValue() + par("TransmissionDelay").doubleValue();
-    delay_time += par("TransmissionDelay").doubleValue();
-    // we need to sleep with processing time 0.5 before calling sendMessageDelay
-    if (tmp_bits[Dup] == 1 && !retransmitted)
-    {
-        selfMessageDuplicate(msg, delay_time);
-    }
-    else
-    {
-        selfMessageDelay(msg, delay_time, retransmitted);
-    }
 
 }
 
@@ -627,10 +658,10 @@ void Node::processFrames(int start_index, int end_index, bool retransmitted)
             if (!messageArray[start_index].empty())
             {
                 EV << "Message " << start_index << " : " << this->messageArray[start_index] << "\n";
-                this->sendLogic(msg, start_index,retransmitted);
+                this->sendLogic(msg, start_index,retransmitted,false);
             }
         }
-
+        double counter = 0;
         for (int i = start_index; i <= end_index; i++)
         {
             if (this->sent_sequences[i] == 0)
@@ -641,7 +672,8 @@ void Node::processFrames(int start_index, int end_index, bool retransmitted)
                 if (!messageArray[i].empty())
                 {
                     EV << "Message " << i << " : " << this->messageArray[i] << "\n";
-                    this->sendLogic(msg, i,retransmitted);
+                    this->sendLogic(msg, i,retransmitted,false,0.5*counter);
+                    counter++;
                 }
             }
         }
